@@ -64,7 +64,7 @@ func runCLI(args []string) error {
 				if err := os.MkdirAll(outputDir, 0o755); err != nil {
 					return err
 				}
-				languages, err := resolveLanguages(paths)
+				languages, err := resolveLanguages(paths, outputDir)
 				if err != nil {
 					return err
 				}

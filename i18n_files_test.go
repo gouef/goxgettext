@@ -14,12 +14,34 @@ func TestResolveLanguagesReadsLINGUAS(t *testing.T) {
 		t.Fatalf("write LINGUAS: %v", err)
 	}
 
-	got, err := resolveLanguages([]string{tempDir})
+	got, err := resolveLanguages([]string{tempDir}, "")
 	if err != nil {
 		t.Fatalf("resolveLanguages() error = %v", err)
 	}
 	if !reflect.DeepEqual(got, []string{"cs", "en"}) {
 		t.Fatalf("resolveLanguages() = %v, want %v", got, []string{"cs", "en"})
+	}
+}
+
+func TestResolveLanguagesPrefersOutputDirLINGUAS(t *testing.T) {
+	rootDir := t.TempDir()
+	outputDir := filepath.Join(rootDir, "po")
+	if err := os.MkdirAll(outputDir, 0o755); err != nil {
+		t.Fatalf("mkdir output dir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(rootDir, "LINGUAS"), []byte("en\n"), 0o644); err != nil {
+		t.Fatalf("write root LINGUAS: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(outputDir, "LINGUAS"), []byte("cs\nfr\n"), 0o644); err != nil {
+		t.Fatalf("write output LINGUAS: %v", err)
+	}
+
+	got, err := resolveLanguages([]string{rootDir}, outputDir)
+	if err != nil {
+		t.Fatalf("resolveLanguages() error = %v", err)
+	}
+	if !reflect.DeepEqual(got, []string{"cs", "fr"}) {
+		t.Fatalf("resolveLanguages() = %v, want %v", got, []string{"cs", "fr"})
 	}
 }
 

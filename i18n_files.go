@@ -9,7 +9,16 @@ import (
 	"strings"
 )
 
-func resolveLanguages(paths []string) ([]string, error) {
+func resolveLanguages(paths []string, outputDir string) ([]string, error) {
+	if outputDir != "" {
+		languages, err := readLINGUAS([]string{outputDir})
+		if err != nil {
+			return nil, err
+		}
+		if len(languages) > 0 {
+			return languages, nil
+		}
+	}
 	return readLINGUAS(paths)
 }
 

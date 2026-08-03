@@ -354,6 +354,34 @@ func main() {
 	}
 }
 
+func TestRunCLIReadsLINGUASFromOutputDir(t *testing.T) {
+	tempDir := t.TempDir()
+	outputDir := filepath.Join(tempDir, "po")
+	if err := os.MkdirAll(outputDir, 0o755); err != nil {
+		t.Fatalf("mkdir output dir: %v", err)
+	}
+
+	if err := os.WriteFile(filepath.Join(tempDir, "main.go"), []byte(`package main
+
+func main() {
+	_ = gettext("Hello")
+}
+`), 0o644); err != nil {
+		t.Fatalf("write main.go: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(outputDir, "LINGUAS"), []byte("cs\n"), 0o644); err != nil {
+		t.Fatalf("write output-dir LINGUAS: %v", err)
+	}
+
+	if err := runCLI([]string{"--output-dir", outputDir, tempDir}); err != nil {
+		t.Fatalf("runCLI() error = %v", err)
+	}
+
+	if _, err := os.Stat(filepath.Join(outputDir, "cs.po")); err != nil {
+		t.Fatalf("expected cs.po to be generated from output-dir LINGUAS: %v", err)
+	}
+}
+
 func TestRunCLIUsesCurrentDirectoryWhenNoPathsProvided(t *testing.T) {
 	tempDir := t.TempDir()
 	outputPath := filepath.Join(tempDir, "messages.pot")
