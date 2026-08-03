@@ -9,10 +9,7 @@ import (
 	"strings"
 )
 
-func resolveLanguages(paths []string, explicit string) ([]string, error) {
-	if explicit != "" {
-		return []string{explicit}, nil
-	}
+func resolveLanguages(paths []string) ([]string, error) {
 	return readLINGUAS(paths)
 }
 
@@ -68,8 +65,8 @@ func readLINGUAS(paths []string) ([]string, error) {
 	return nil, nil
 }
 
-func writePOTFILES(outputDir string, paths []string) error {
-	files, err := collectSourceFiles(paths)
+func writePOTFILES(outputDir string, paths []string, cfg extractorConfig) error {
+	files, err := collectSourceFiles(paths, cfg)
 	if err != nil {
 		return err
 	}
@@ -79,15 +76,41 @@ func writePOTFILES(outputDir string, paths []string) error {
 	return os.WriteFile(potfilesPath, []byte(content), 0o644)
 }
 
-func collectSourceFiles(paths []string) ([]string, error) {
+func collectSourceFiles(paths []string, cfg extractorConfig) ([]string, error) {
 	var files []string
+	collectIfTranslatable := func(current string) error {
+		ext := strings.ToLower(filepath.Ext(current))
+		if !hasExtension(cfg.exts, ext) {
+			return nil
+		}
+
+		content, err := os.ReadFile(current)
+		if err != nil {
+			return err
+		}
+
+		switch ext {
+		case ".go":
+			if len(extractGoSourceMessagesWithConfig(string(content), cfg)) > 0 {
+				files = append(files, current)
+			}
+		case ".gohtml", ".html":
+			if len(extractGoHTMLTemplateMessagesWithConfig(string(content), cfg)) > 0 {
+				files = append(files, current)
+			}
+		}
+		return nil
+	}
+
 	for _, path := range paths {
 		info, err := os.Stat(path)
 		if err != nil {
 			return nil, err
 		}
 		if !info.IsDir() {
-			files = append(files, path)
+			if err := collectIfTranslatable(path); err != nil {
+				return nil, err
+			}
 			continue
 		}
 		walkErr := filepath.Walk(path, func(current string, info os.FileInfo, err error) error {
@@ -102,11 +125,7 @@ func collectSourceFiles(paths []string) ([]string, error) {
 				}
 				return nil
 			}
-			ext := strings.ToLower(filepath.Ext(current))
-			if hasExtension(newExtractorConfig().exts, ext) {
-				files = append(files, current)
-			}
-			return nil
+			return collectIfTranslatable(current)
 		})
 		if walkErr != nil {
 			return nil, walkErr

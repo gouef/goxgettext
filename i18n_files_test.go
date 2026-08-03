@@ -8,13 +8,18 @@ import (
 	"testing"
 )
 
-func TestResolveLanguagesUsesExplicitLanguage(t *testing.T) {
-	got, err := resolveLanguages([]string{t.TempDir()}, "cs")
+func TestResolveLanguagesReadsLINGUAS(t *testing.T) {
+	tempDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(tempDir, "LINGUAS"), []byte("cs\nen\n"), 0o644); err != nil {
+		t.Fatalf("write LINGUAS: %v", err)
+	}
+
+	got, err := resolveLanguages([]string{tempDir})
 	if err != nil {
 		t.Fatalf("resolveLanguages() error = %v", err)
 	}
-	if !reflect.DeepEqual(got, []string{"cs"}) {
-		t.Fatalf("resolveLanguages() = %v, want %v", got, []string{"cs"})
+	if !reflect.DeepEqual(got, []string{"cs", "en"}) {
+		t.Fatalf("resolveLanguages() = %v, want %v", got, []string{"cs", "en"})
 	}
 }
 
@@ -67,17 +72,25 @@ func TestWritePOTFILESCollectsSupportedFiles(t *testing.T) {
 	if err := os.MkdirAll(outDir, 0o755); err != nil {
 		t.Fatalf("mkdir output dir: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(tempDir, "main.go"), []byte(`package main`), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(tempDir, "main.go"), []byte(`package main
+
+func main() {
+	_ = gettext("Hello")
+}
+`), 0o644); err != nil {
 		t.Fatalf("write main.go: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(tempDir, "page.gohtml"), []byte(`<h1>Hi</h1>`), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(tempDir, "page.gohtml"), []byte(`{{ t "Hi" }}`), 0o644); err != nil {
 		t.Fatalf("write page.gohtml: %v", err)
 	}
 	if err := os.WriteFile(filepath.Join(tempDir, "notes.txt"), []byte("ignore"), 0o644); err != nil {
 		t.Fatalf("write notes.txt: %v", err)
 	}
+	if err := os.WriteFile(filepath.Join(tempDir, "ignored.gohtml"), []byte(`<h1>plain text</h1>`), 0o644); err != nil {
+		t.Fatalf("write ignored.gohtml: %v", err)
+	}
 
-	if err := writePOTFILES(outDir, []string{tempDir}); err != nil {
+	if err := writePOTFILES(outDir, []string{tempDir}, newExtractorConfig()); err != nil {
 		t.Fatalf("writePOTFILES() error = %v", err)
 	}
 
@@ -92,16 +105,24 @@ func TestWritePOTFILESCollectsSupportedFiles(t *testing.T) {
 	if strings.Contains(text, "notes.txt") {
 		t.Fatalf("POTFILES should not include unsupported file, got %q", text)
 	}
+	if strings.Contains(text, "ignored.gohtml") {
+		t.Fatalf("POTFILES should not include files without extractable messages, got %q", text)
+	}
 }
 
 func TestCollectSourceFilesReturnsFilesForDirectoryAndSingleFile(t *testing.T) {
 	tempDir := t.TempDir()
 	mainPath := filepath.Join(tempDir, "main.go")
-	if err := os.WriteFile(mainPath, []byte(`package main`), 0o644); err != nil {
+	if err := os.WriteFile(mainPath, []byte(`package main
+
+func main() {
+	_ = gettext("Hello")
+}
+`), 0o644); err != nil {
 		t.Fatalf("write main.go: %v", err)
 	}
 
-	files, err := collectSourceFiles([]string{mainPath})
+	files, err := collectSourceFiles([]string{mainPath}, newExtractorConfig())
 	if err != nil {
 		t.Fatalf("collectSourceFiles(single file) error = %v", err)
 	}
@@ -109,7 +130,7 @@ func TestCollectSourceFilesReturnsFilesForDirectoryAndSingleFile(t *testing.T) {
 		t.Fatalf("collectSourceFiles(single file) = %v, want %v", files, []string{mainPath})
 	}
 
-	dirFiles, err := collectSourceFiles([]string{tempDir})
+	dirFiles, err := collectSourceFiles([]string{tempDir}, newExtractorConfig())
 	if err != nil {
 		t.Fatalf("collectSourceFiles(directory) error = %v", err)
 	}

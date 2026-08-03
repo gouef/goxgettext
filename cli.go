@@ -15,7 +15,6 @@ type cliOptions struct {
 	keywords   []string
 	exts       []string
 	outputDir  string
-	language   string
 	all        bool
 }
 
@@ -65,14 +64,14 @@ func runCLI(args []string) error {
 				if err := os.MkdirAll(outputDir, 0o755); err != nil {
 					return err
 				}
-				languages, err := resolveLanguages(paths, opts.language)
+				languages, err := resolveLanguages(paths)
 				if err != nil {
 					return err
 				}
 				if err := writeLanguageFiles(outputDir, all, languages); err != nil {
 					return err
 				}
-				if err := writePOTFILES(outputDir, paths); err != nil {
+				if err := writePOTFILES(outputDir, paths, cfg); err != nil {
 					return err
 				}
 				if opts.all {
@@ -102,7 +101,6 @@ func runCLI(args []string) error {
 	cmd.Flags().StringSliceVar(&opts.keywords, "keyword", []string{}, "additional translation function names")
 	cmd.Flags().StringSliceVar(&opts.exts, "extension", []string{}, "additional file extensions to scan (for example .html)")
 	cmd.Flags().StringVar(&opts.outputDir, "output-dir", "", "directory for generated language files")
-	cmd.Flags().StringVar(&opts.language, "language", "", "language code to generate/update (for example cs)")
 	cmd.Flags().BoolVar(&opts.all, "all", false, "generate POT, PO, language files, and POTFILES in one command")
 	cmd.SetArgs(args)
 

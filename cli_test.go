@@ -83,6 +83,9 @@ func main() {
 `), 0o644); err != nil {
 		t.Fatalf("write main.go: %v", err)
 	}
+	if err := os.WriteFile(filepath.Join(tempDir, "LINGUAS"), []byte("cs\n"), 0o644); err != nil {
+		t.Fatalf("write LINGUAS: %v", err)
+	}
 
 	if err := os.WriteFile(languageFile, []byte(`msgid ""
 msgstr ""
@@ -95,7 +98,7 @@ msgstr "Ahoj"
 		t.Fatalf("write initial language file: %v", err)
 	}
 
-	if err := runCLI([]string{"--output", outputPath, "--output-dir", localeDir, "--language", "cs", tempDir}); err != nil {
+	if err := runCLI([]string{"--output", outputPath, "--output-dir", localeDir, tempDir}); err != nil {
 		t.Fatalf("runCLI() error = %v", err)
 	}
 
@@ -128,7 +131,7 @@ func main() {
 `), 0o644); err != nil {
 		t.Fatalf("write main.go: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(tempDir, "index.html"), []byte(`<html><body>Welcome</body></html>`), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(tempDir, "index.html"), []byte(`{{ i18n "nav.home" }}`), 0o644); err != nil {
 		t.Fatalf("write index.html: %v", err)
 	}
 	if err := os.WriteFile(linguasPath, []byte("cs\nfr\n"), 0o644); err != nil {
@@ -321,6 +324,33 @@ func main() {
 	}
 	if _, err := os.Stat(filepath.Join(outputDir, "POTFILES")); err != nil {
 		t.Fatalf("expected POTFILES to be created: %v", err)
+	}
+}
+
+func TestRunCLIWithAllFlagGeneratesLanguagesFromLINGUAS(t *testing.T) {
+	tempDir := t.TempDir()
+	outputDir := filepath.Join(tempDir, "locale")
+
+	if err := os.WriteFile(filepath.Join(tempDir, "main.go"), []byte(`package main
+
+func main() {
+	_ = gettext("Hello")
+}
+`), 0o644); err != nil {
+		t.Fatalf("write main.go: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(tempDir, "LINGUAS"), []byte("cs\nen\n"), 0o644); err != nil {
+		t.Fatalf("write LINGUAS: %v", err)
+	}
+
+	if err := runCLI([]string{"--all", "--output-dir", outputDir, tempDir}); err != nil {
+		t.Fatalf("runCLI() error = %v", err)
+	}
+
+	for _, lang := range []string{"cs", "en"} {
+		if _, err := os.Stat(filepath.Join(outputDir, lang+".po")); err != nil {
+			t.Fatalf("expected language file for %s to be created: %v", lang, err)
+		}
 	}
 }
 

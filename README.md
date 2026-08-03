@@ -56,6 +56,8 @@ The simplest workflow is to generate everything in one step:
 ./bin/goxgettext --all --output-dir locale .
 ```
 
+Language files are generated from entries in `LINGUAS` (for example `cs` and `en`).
+
 This creates:
 
 - a POT file at `locale/messages.pot`
@@ -81,11 +83,7 @@ If you want to generate language files without writing the POT/PO files:
 ./bin/goxgettext --output-dir locale .
 ```
 
-Generate a single language file explicitly:
-
-```bash
-./bin/goxgettext --output-dir locale --language cs .
-```
+This also uses `LINGUAS` to decide which language files are generated.
 
 Build release binaries for multiple platforms:
 
@@ -108,7 +106,7 @@ Download the appropriate binary for your platform from the release page and run 
 - --keyword: add custom translation function names
 - --extension: include additional file extensions to scan
 - --output-dir: write generated language files to a directory
-- --language: generate or update a specific language file
+- `LINGUAS`: language list file used for generating/updating language catalogs
 
 ## 🛠️ Development
 
