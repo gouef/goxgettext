@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -15,6 +16,7 @@ type cliOptions struct {
 	exts       []string
 	outputDir  string
 	language   string
+	all        bool
 }
 
 func runCLI(args []string) error {
@@ -55,23 +57,40 @@ func runCLI(args []string) error {
 				}
 			}
 
-			if opts.outputDir != "" {
-				if err := os.MkdirAll(opts.outputDir, 0o755); err != nil {
+			if opts.outputDir != "" || opts.all {
+				outputDir := opts.outputDir
+				if outputDir == "" {
+					outputDir = "locale"
+				}
+				if err := os.MkdirAll(outputDir, 0o755); err != nil {
 					return err
 				}
 				languages, err := resolveLanguages(paths, opts.language)
 				if err != nil {
 					return err
 				}
-				if err := writeLanguageFiles(opts.outputDir, all, languages); err != nil {
+				if err := writeLanguageFiles(outputDir, all, languages); err != nil {
 					return err
 				}
-				if err := writePOTFILES(opts.outputDir, paths); err != nil {
+				if err := writePOTFILES(outputDir, paths); err != nil {
 					return err
+				}
+				if opts.all {
+					potPath := filepath.Join(outputDir, "messages.pot")
+					if err := os.WriteFile(potPath, []byte(buildPOT(all)), 0o644); err != nil {
+						return err
+					}
+					poPath := filepath.Join(outputDir, "messages.po")
+					if err := os.WriteFile(poPath, []byte(buildPO(all)), 0o644); err != nil {
+						return err
+					}
 				}
 			}
 
 			if opts.outputFile == "" {
+				if opts.all {
+					return nil
+				}
 				fmt.Print(content)
 			}
 			return nil
@@ -84,6 +103,7 @@ func runCLI(args []string) error {
 	cmd.Flags().StringSliceVar(&opts.exts, "extension", []string{}, "additional file extensions to scan (for example .html)")
 	cmd.Flags().StringVar(&opts.outputDir, "output-dir", "", "directory for generated language files")
 	cmd.Flags().StringVar(&opts.language, "language", "", "language code to generate/update (for example cs)")
+	cmd.Flags().BoolVar(&opts.all, "all", false, "generate POT, PO, language files, and POTFILES in one command")
 	cmd.SetArgs(args)
 
 	if err := cmd.Execute(); err != nil {

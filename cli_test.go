@@ -293,6 +293,37 @@ func TestMainExitsOnCLIErrorInSubprocess(t *testing.T) {
 	}
 }
 
+func TestRunCLIWithAllFlagGeneratesPOTPOAndLanguages(t *testing.T) {
+	tempDir := t.TempDir()
+	outputDir := filepath.Join(tempDir, "locale")
+
+	if err := os.WriteFile(filepath.Join(tempDir, "main.go"), []byte(`package main
+
+func main() {
+	_ = gettext("Hello")
+}
+`), 0o644); err != nil {
+		t.Fatalf("write main.go: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(tempDir, "LINGUAS"), []byte("cs\n"), 0o644); err != nil {
+		t.Fatalf("write LINGUAS: %v", err)
+	}
+
+	if err := runCLI([]string{"--all", "--output-dir", outputDir, tempDir}); err != nil {
+		t.Fatalf("runCLI() error = %v", err)
+	}
+
+	if _, err := os.Stat(filepath.Join(outputDir, "messages.pot")); err != nil {
+		t.Fatalf("expected POT file to be created: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(outputDir, "cs.po")); err != nil {
+		t.Fatalf("expected language file to be created: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(outputDir, "POTFILES")); err != nil {
+		t.Fatalf("expected POTFILES to be created: %v", err)
+	}
+}
+
 func TestRunCLIUsesCurrentDirectoryWhenNoPathsProvided(t *testing.T) {
 	tempDir := t.TempDir()
 	outputPath := filepath.Join(tempDir, "messages.pot")

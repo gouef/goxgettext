@@ -50,25 +50,32 @@ After installation, you can run `goxgettext` directly from your shell.
 
 ## 🧪 Usage
 
-Run the extractor against a source tree:
+The simplest workflow is to generate everything in one step:
 
 ```bash
-./bin/goxgettext .
+./bin/goxgettext --all --output-dir locale .
 ```
 
-Generate a POT catalog:
+This creates:
+
+- a POT file at `locale/messages.pot`
+- a PO file at `locale/messages.po`
+- language files such as `locale/cs.po`
+- a `locale/POTFILES` list
+
+If you only want a POT catalog:
 
 ```bash
 ./bin/goxgettext --output messages.pot .
 ```
 
-Generate a PO catalog:
+If you only want a PO catalog:
 
 ```bash
 ./bin/goxgettext --format po --output messages.po .
 ```
 
-Generate language files from a LINGUAS file:
+If you want to generate language files without writing the POT/PO files:
 
 ```bash
 ./bin/goxgettext --output-dir locale .
