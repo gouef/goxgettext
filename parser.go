@@ -25,7 +25,7 @@ func newExtractorConfig() extractorConfig {
 	return extractorConfig{
 		keywords:   []string{"t", "T", "gettext", "i18n"},
 		exts:       []string{".go", ".gohtml", ".html"},
-		ignoreDirs: []string{"vendor"},
+		ignoreDirs: []string{"vendor", ".git", "node_modules"},
 	}
 }
 

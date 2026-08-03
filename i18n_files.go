@@ -95,6 +95,11 @@ func collectSourceFiles(paths []string) ([]string, error) {
 				return err
 			}
 			if info.IsDir() {
+				for _, ignored := range newExtractorConfig().ignoreDirs {
+					if strings.EqualFold(info.Name(), ignored) {
+						return filepath.SkipDir
+					}
+				}
 				return nil
 			}
 			ext := strings.ToLower(filepath.Ext(current))
