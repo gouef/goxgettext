@@ -10,8 +10,9 @@ import (
 )
 
 type extractorConfig struct {
-	keywords []string
-	exts     []string
+	keywords   []string
+	exts       []string
+	ignoreDirs []string
 }
 
 var (
@@ -22,8 +23,9 @@ var (
 
 func newExtractorConfig() extractorConfig {
 	return extractorConfig{
-		keywords: []string{"t", "T", "gettext", "i18n"},
-		exts:     []string{".go", ".gohtml", ".html"},
+		keywords:   []string{"t", "T", "gettext", "i18n"},
+		exts:       []string{".go", ".gohtml", ".html"},
+		ignoreDirs: []string{"vendor"},
 	}
 }
 

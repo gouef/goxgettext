@@ -59,6 +59,11 @@ func collectMessagesWithConfig(root string, cfg extractorConfig) ([]message, err
 			return err
 		}
 		if info.IsDir() {
+			for _, ignored := range cfg.ignoreDirs {
+				if strings.EqualFold(info.Name(), ignored) {
+					return filepath.SkipDir
+				}
+			}
 			return nil
 		}
 
