@@ -29,28 +29,21 @@ make build
 
 The binary will be created at ./bin/goxgettext and can be run directly.
 
-Install from a downloaded release binary:
+Install from a single shell script:
 
-
-### Linux
 ```bash
-curl -L -o /tmp/goxgettext https://github.com/gouef/goxgettext/releases/latest/download/goxgettext-linux-amd64
-sudo install -m 0755 /tmp/goxgettext /usr/local/bin/goxgettext
-/usr/local/bin/goxgettext --help
+curl -fsSL https://raw.githubusercontent.com/gouef/goxgettext/main/install.sh -o /tmp/install-goxgettext.sh
+sh /tmp/install-goxgettext.sh
 ```
 
+The script downloads the correct release binary for your platform and installs it to `$HOME/.local/bin/goxgettext` by default. Make sure that directory is on your `PATH`.
 
-### macOS
+No `chmod +x` is required here — the script is intended to be run as `sh /tmp/install-goxgettext.sh`.
+
+If you want a system-wide install, you can override the target directory:
+
 ```bash
-curl -L -o /tmp/goxgettext https://github.com/gouef/goxgettext/releases/latest/download/goxgettext-darwin-amd64
-install -m 0755 /tmp/goxgettext /usr/local/bin/goxgettext
-/usr/local/bin/goxgettext --help
-```
-
-### Windows
-```powershell
-# Windows (PowerShell)
-Invoke-WebRequest -Uri https://github.com/gouef/goxgettext/releases/latest/download/goxgettext-windows-amd64.exe -OutFile "$env:USERPROFILE\bin\goxgettext.exe"
+INSTALL_DIR=/usr/local/bin sh /tmp/install-goxgettext.sh
 ```
 
 After installation, you can run `goxgettext` directly from your shell.
