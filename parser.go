@@ -16,9 +16,8 @@ type extractorConfig struct {
 }
 
 var (
-	htmlTagPattern        = regexp.MustCompile(`<[^>]+>`)
-	templateCallPattern   = regexp.MustCompile(`\{\{\s*(.*?)\s*\}\}`)
-	templateStringPattern = regexp.MustCompile(`(?:^|[^\w.])(?:t|T|gettext|\.t|\.T|\.gettext)\s+"((?:[^"\\]|\\.)*)"`)
+	htmlTagPattern      = regexp.MustCompile(`<[^>]+>`)
+	templateCallPattern = regexp.MustCompile(`\{\{\s*(.*?)\s*\}\}`)
 )
 
 func newExtractorConfig() extractorConfig {
@@ -30,17 +29,21 @@ func newExtractorConfig() extractorConfig {
 }
 
 func extractGoSource(src string) []string {
-	return extractGoSourceWithConfig(src, newExtractorConfig())
+	return extractMessageIDs(extractGoSourceMessagesWithConfig(src, newExtractorConfig()))
 }
 
 func extractGoSourceWithConfig(src string, cfg extractorConfig) []string {
+	return extractMessageIDs(extractGoSourceMessagesWithConfig(src, cfg))
+}
+
+func extractGoSourceMessagesWithConfig(src string, cfg extractorConfig) []message {
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, "", src, parser.ParseComments)
 	if err != nil {
 		return nil
 	}
 
-	var messages []string
+	var messages []message
 	seen := make(map[string]struct{})
 	ast.Inspect(file, func(node ast.Node) bool {
 		call, ok := node.(*ast.CallExpr)
@@ -61,11 +64,23 @@ func extractGoSourceWithConfig(src string, cfg extractorConfig) []string {
 			return true
 		}
 		seen[value] = struct{}{}
-		messages = append(messages, value)
+		line := fset.Position(call.Pos()).Line
+		messages = append(messages, message{id: value, line: line})
 		return true
 	})
 
 	return messages
+}
+
+func extractMessageIDs(messages []message) []string {
+	if messages == nil {
+		return nil
+	}
+	ids := make([]string, 0, len(messages))
+	for _, msg := range messages {
+		ids = append(ids, msg.id)
+	}
+	return ids
 }
 
 func isTranslationCall(expr ast.Expr, keywords []string) bool {
@@ -77,7 +92,7 @@ func isTranslationCall(expr ast.Expr, keywords []string) bool {
 			return true
 		}
 		if ident, ok := fn.X.(*ast.Ident); ok {
-			return containsKeyword(keywords, ident.Name)
+			return containsKeyword(keywords, ident.Name+"."+fn.Sel.Name)
 		}
 		return false
 	default:
@@ -111,9 +126,13 @@ func stringLiteralValue(expr ast.Expr) (string, bool) {
 }
 
 func extractGoHTMLTemplate(src string) []string {
-	var messages []string
+	return extractMessageIDs(extractGoHTMLTemplateMessagesWithConfig(src, newExtractorConfig()))
+}
+
+func extractGoHTMLTemplateMessagesWithConfig(src string, cfg extractorConfig) []message {
+	var messages []message
 	seen := make(map[string]struct{})
-	add := func(value string) {
+	add := func(value string, line int) {
 		value = strings.TrimSpace(value)
 		if value == "" {
 			return
@@ -122,22 +141,27 @@ func extractGoHTMLTemplate(src string) []string {
 			return
 		}
 		seen[value] = struct{}{}
-		messages = append(messages, value)
+		messages = append(messages, message{id: value, line: line})
 	}
 
-	for _, part := range extractVisibleText(src) {
-		add(part)
-	}
-
-	for _, match := range templateCallPattern.FindAllStringSubmatch(src, -1) {
-		if len(match) < 2 {
+	actionMatches := templateCallPattern.FindAllStringSubmatchIndex(src, -1)
+	for _, action := range actionMatches {
+		if len(action) < 4 {
 			continue
 		}
-		for _, tpl := range templateStringPattern.FindAllStringSubmatch(match[1], -1) {
-			if len(tpl) < 2 {
-				continue
+		actionBodyStart := action[2]
+		actionBodyEnd := action[3]
+		actionBody := src[actionBodyStart:actionBodyEnd]
+		for _, keyword := range cfg.keywords {
+			pattern := regexp.MustCompile(`(?:^|[^\w.])(?:\.)?` + regexp.QuoteMeta(keyword) + `\s+"((?:[^"\\]|\\.)*)"`)
+			for _, tpl := range pattern.FindAllStringSubmatchIndex(actionBody, -1) {
+				if len(tpl) < 4 {
+					continue
+				}
+				messageStart := actionBodyStart + tpl[2]
+				line := 1 + strings.Count(src[:messageStart], "\n")
+				add(actionBody[tpl[2]:tpl[3]], line)
 			}
-			add(tpl[1])
 		}
 	}
 

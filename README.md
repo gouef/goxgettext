@@ -7,7 +7,7 @@ goxgettext scans Go source files and GoHTML/HTML templates, collects translatabl
 ## ✨ Features
 
 - Extracts messages from Go calls such as `gettext`, `t`, `T`, and `i18n`
-- Scans GoHTML and HTML templates for visible text and translation calls
+- Scans GoHTML and HTML templates for translation calls (keyword-based)
 - Supports recursive directory scanning
 - Generates POT and PO output
 - Can create language-specific PO files and a POTFILES list from `LINGUAS`

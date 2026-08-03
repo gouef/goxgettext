@@ -34,7 +34,7 @@ func TestExtractGoHTMLTemplate(t *testing.T) {
 `
 
 	got := extractGoHTMLTemplate(src)
-	want := []string{"Hello", "Welcome", "Bonjour"}
+	want := []string{"Bonjour"}
 
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("extractGoHTMLTemplate() = %v, want %v", got, want)
@@ -81,7 +81,7 @@ func TestExtractGoSourceIncludesI18nKeyword(t *testing.T) {
 func main() {
 	_ = i18n.T("Hello")
 }
-`
+	`
 
 	got := extractGoSource(src)
 	want := []string{"Hello"}
@@ -91,11 +91,23 @@ func main() {
 	}
 }
 
+func TestExtractGoHTMLTemplateIncludesI18nKeyword(t *testing.T) {
+	src := `{{ i18n "nav.home" }}
+{{ i18n "nav.projects" }}`
+
+	got := extractGoHTMLTemplate(src)
+	want := []string{"nav.home", "nav.projects"}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("extractGoHTMLTemplate() = %v, want %v", got, want)
+	}
+}
+
 func TestExtractHTMLTemplateText(t *testing.T) {
 	src := `<html><body><h1>Welcome</h1><p>Home page</p></body></html>`
 
 	got := extractGoHTMLTemplate(src)
-	want := []string{"Welcome", "Home page"}
+	var want []string
 
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("extractGoHTMLTemplate() = %v, want %v", got, want)

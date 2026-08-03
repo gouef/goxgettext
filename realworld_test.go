@@ -22,8 +22,8 @@ func main() {
 `
 	htmlFile := `<html>
   <body>
-    <h1>Hello</h1>
-    <p>World</p>
+		{{ t "Hello" }}
+		{{ gettext "World" }}
   </body>
 </html>`
 
@@ -34,7 +34,7 @@ func main() {
 		t.Fatalf("write index.html: %v", err)
 	}
 
-	entries, err := collectMessagesWithConfig(tempDir, extractorConfig{keywords: []string{"gettext", "i18n"}, exts: []string{".go", ".html"}})
+	entries, err := collectMessagesWithConfig(tempDir, extractorConfig{keywords: []string{"gettext", "T", "t"}, exts: []string{".go", ".html"}})
 	if err != nil {
 		t.Fatalf("collectMessagesWithConfig() error = %v", err)
 	}
@@ -64,7 +64,7 @@ func TestRunCLIWithExtensionFlag(t *testing.T) {
 	tempDir := t.TempDir()
 	outputPath := filepath.Join(tempDir, "messages.pot")
 
-	if err := os.WriteFile(filepath.Join(tempDir, "index.html"), []byte(`<html><body>Hello</body></html>`), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(tempDir, "index.html"), []byte(`<html><body>{{ t "Hello" }}</body></html>`), 0o644); err != nil {
 		t.Fatalf("write index.html: %v", err)
 	}
 

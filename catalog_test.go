@@ -60,7 +60,7 @@ func main() {
 		got = append(got, entry.id)
 	}
 
-	want := []string{"Bonjour", "Hello", "Welcome"}
+	want := []string{"Bonjour", "Hello"}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("collectMessages() = %v, want %v", got, want)
 	}
@@ -129,5 +129,43 @@ func TestBuildPOTAndBuildPOSkipEmptyMessages(t *testing.T) {
 	po := buildPO(entries)
 	if !strings.Contains(po, `msgid "Hello"`) {
 		t.Fatalf("buildPO() missing message id, got %q", po)
+	}
+}
+
+func TestCollectMessagesIncludesLineNumbers(t *testing.T) {
+	tempDir := t.TempDir()
+
+	goSrc := `package main
+
+func main() {
+	_ = gettext("GoLine")
+}
+`
+	tplSrc := `<div>
+{{ t "TplLine" }}
+</div>`
+
+	if err := os.WriteFile(filepath.Join(tempDir, "main.go"), []byte(goSrc), 0o644); err != nil {
+		t.Fatalf("write main.go: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(tempDir, "page.gohtml"), []byte(tplSrc), 0o644); err != nil {
+		t.Fatalf("write page.gohtml: %v", err)
+	}
+
+	entries, err := collectMessages(tempDir)
+	if err != nil {
+		t.Fatalf("collectMessages() error = %v", err)
+	}
+
+	lines := make(map[string]int)
+	for _, entry := range entries {
+		lines[entry.id] = entry.line
+	}
+
+	if lines["GoLine"] != 4 {
+		t.Fatalf("GoLine line = %d, want 4", lines["GoLine"])
+	}
+	if lines["TplLine"] != 2 {
+		t.Fatalf("TplLine line = %d, want 2", lines["TplLine"])
 	}
 }

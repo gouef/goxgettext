@@ -79,12 +79,12 @@ func collectMessagesWithConfig(root string, cfg extractorConfig) ([]message, err
 
 		switch ext {
 		case ".go":
-			for _, msg := range extractGoSourceWithConfig(string(content), cfg) {
-				messages.add(msg, path, 0)
+			for _, msg := range extractGoSourceMessagesWithConfig(string(content), cfg) {
+				messages.add(msg.id, path, msg.line)
 			}
 		case ".gohtml", ".html":
-			for _, msg := range extractGoHTMLTemplate(string(content)) {
-				messages.add(msg, path, 0)
+			for _, msg := range extractGoHTMLTemplateMessagesWithConfig(string(content), cfg) {
+				messages.add(msg.id, path, msg.line)
 			}
 		}
 
