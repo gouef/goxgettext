@@ -91,6 +91,59 @@ Build release binaries for multiple platforms:
 make release
 ```
 
+## 📘 Example
+
+Minimal project input:
+
+```text
+my-app/
+  po/
+    LINGUAS
+  views/
+    navigation.gohtml
+  main.go
+```
+
+`po/LINGUAS` (one language per line):
+
+```text
+cs
+en
+```
+
+`views/navigation.gohtml`:
+
+```gohtml
+<nav>
+  <a>{{ i18n "nav.home" }}</a>
+  <a>{{ i18n "nav.projects" }}</a>
+</nav>
+```
+
+Run:
+
+```bash
+goxgettext --all --output-dir po .
+```
+
+Generated files:
+
+```text
+po/messages.pot
+po/messages.po
+po/cs.po
+po/en.po
+po/POTFILES
+```
+
+`po/messages.pot` contains references with line numbers, for example:
+
+```po
+#: /path/to/my-app/views/navigation.gohtml:2
+msgid "nav.home"
+msgstr ""
+```
+
 ## 📦 Release binaries
 
 When a tag matching `v*` is pushed, the GitHub Actions workflow in [.github/workflows/release.yml](.github/workflows/release.yml) builds release artifacts for Linux, macOS, and Windows and uploads them to the GitHub Release.
