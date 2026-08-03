@@ -1,6 +1,40 @@
 # goxgettext
 
-A lightweight gettext-style extractor for Go projects.
+<p align="center">
+  <strong>gettext-style extraction workflow for Go and GoHTML projects</strong><br/>
+  Extract translation keys, generate POT/PO catalogs, update language files from LINGUAS, and keep POTFILES in sync.
+</p>
+
+<p align="center">
+  <a href="#-installation"><strong>Install</strong></a>
+  ·
+  <a href="#-usage"><strong>Usage</strong></a>
+  ·
+  <a href="#-example"><strong>Example</strong></a>
+  ·
+  <a href="#-release-binaries"><strong>Release</strong></a>
+  ·
+  <a href="#license"><strong>License</strong></a>
+</p>
+
+> [!TIP]
+> Quick start:
+>
+> ```bash
+> goxgettext --all --output-dir po .
+> ```
+
+[![Release](https://img.shields.io/github/v/release/gouef/goxgettext?style=for-the-badge)](https://github.com/gouef/goxgettext/releases)
+[![Release Date](https://img.shields.io/github/release-date/gouef/goxgettext?style=for-the-badge)](https://github.com/gouef/goxgettext/releases)
+[![Downloads](https://img.shields.io/github/downloads/gouef/goxgettext/total?style=for-the-badge)](https://github.com/gouef/goxgettext/releases)
+[![License](https://img.shields.io/github/license/gouef/goxgettext?style=for-the-badge)](LICENSE)
+
+[![Tests](https://img.shields.io/github/actions/workflow/status/gouef/goxgettext/tests.yml?style=for-the-badge)](https://github.com/gouef/goxgettext/actions/workflows/tests.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/gouef/goxgettext?style=for-the-badge)](https://app.codecov.io/gh/gouef/goxgettext)
+[![Commit Lint](https://img.shields.io/github/actions/workflow/status/gouef/goxgettext/commit-lint.yml?style=for-the-badge)](https://github.com/gouef/goxgettext/actions/workflows/commit-lint.yml)
+[![Go Version](https://img.shields.io/badge/Go-1.26.5-00ADD8?logo=go&style=for-the-badge)](https://go.dev/)
+
+Lightweight gettext-style extractor for Go projects.
 
 goxgettext scans Go source files and GoHTML/HTML templates, collects translatable strings, and generates POT/PO catalogs for your project.
 
@@ -85,7 +119,7 @@ If you want to generate language files without writing the POT/PO files:
 
 This also uses `LINGUAS` to decide which language files are generated.
 
-Build release binaries for multiple platforms:
+Create release binaries for multiple platforms:
 
 ```bash
 make release
