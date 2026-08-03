@@ -31,12 +31,24 @@ The binary will be created at ./bin/goxgettext and can be run directly.
 
 Install from a downloaded release binary:
 
+
+### Linux
 ```bash
-# Linux / macOS
 curl -L -o /tmp/goxgettext https://github.com/gouef/goxgettext/releases/latest/download/goxgettext-linux-amd64
+sudo install -m 0755 /tmp/goxgettext /usr/local/bin/goxgettext
+/usr/local/bin/goxgettext --help
+```
+
+
+### macOS
+```bash
+curl -L -o /tmp/goxgettext https://github.com/gouef/goxgettext/releases/latest/download/goxgettext-darwin-amd64
 install -m 0755 /tmp/goxgettext /usr/local/bin/goxgettext
 /usr/local/bin/goxgettext --help
+```
 
+### Windows
+```powershell
 # Windows (PowerShell)
 Invoke-WebRequest -Uri https://github.com/gouef/goxgettext/releases/latest/download/goxgettext-windows-amd64.exe -OutFile "$env:USERPROFILE\bin\goxgettext.exe"
 ```
